@@ -132,13 +132,15 @@ app.post("/generate-reel", function(req, res) {
 
       var concatInput = imagePaths.map(function(_, i) {
         return "[v" + i + "]";
-      }).join("");var concatFilter = concatInput + "concat=n=" + imagePaths.length + ":v=1:a=0[outv]";
+      }).join("");
 
-      var safeHook = (hook_text  title  "").replace(/'/g, "").substring(0, 60);
+      var concatFilter = concatInput + "concat=n=" + imagePaths.length + ":v=1:a=0[outv]";
+
+      var safeHook = (hook_text || title || "").replace(/'/g, "").substring(0, 60);
       var safeLocation = (location || "").replace(/'/g, "").substring(0, 40);
-      var safePrice = (price  "") + " " + (price_unit  "");
-      var safeDetails = (bedrooms  "") + " " + (area_sqm  "");
-      var safeCta = (cta_text || "ابعتلنا واتساب").replace(/'/g, "").substring(0, 50);
+      var safePrice = (price || "") + " " + (price_unit || "");
+      var safeDetails = (bedrooms || "") + " " + (area_sqm || "");
+      var safeCta = (cta_text || "").replace(/'/g, "").substring(0, 50);
 
       var hookFilter = "[outv]drawtext=text='" + safeHook + "':fontsize=52:fontcolor=white:x=(w-text_w)/2:y=180:shadowcolor=black:shadowx=3:shadowy=3[v_hook]";
       var locFilter = "[v_hook]drawtext=text='" + safeLocation + "':fontsize=38:fontcolor=white:x=(w-text_w)/2:y=1350:shadowcolor=black:shadowx=2:shadowy=2[v_loc]";
@@ -210,3 +212,4 @@ app.post("/generate-reel", function(req, res) {
 app.listen(PORT, function() {
   console.log("FFmpeg Reel Service running on port " + PORT);
 });
+
