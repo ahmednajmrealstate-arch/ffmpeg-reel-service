@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ffmpeg-reel-service
+    env: node
+    buildCommand: |
+      apt-get update && apt-get install -y ffmpeg fonts-dejavu && npm install
+    startCommand: node index.js
+    envVars:
+      - key: SECRET_KEY
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: DRIVE_FOLDER_ID
+        sync: false
+    plan: free
