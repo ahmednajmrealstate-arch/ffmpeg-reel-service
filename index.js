@@ -15,7 +15,6 @@ app.use(express.json({ limit: "50mb" }));
 
 var PORT = process.env.PORT || 3000;
 var DRIVE_FOLDER_ID = process.env.DRIVE_FOLDER_ID;
-
 var serviceAccount = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
 
 function getDriveClient() {
@@ -128,8 +127,7 @@ app.post("/generate-reel", function(req, res) {
       });
 
       var scaleFilters = imagePaths.map(function(_, i) {
-        return "[" + i + ":v]scale=1080:1920:force_original_aspect_ratio=increase," +
-          "crop=1080:1920,setsar=1[v" + i + "]";
+        return "[" + i + ":v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1[v" + i + "]";
       });
 
       var concatInput = imagePaths.map(function(_, i) {
@@ -139,7 +137,7 @@ app.post("/generate-reel", function(req, res) {
       var safeHook = (hook_text  title  "").replace(/'/g, "").substring(0, 60);
       var safeLocation = (location || "").replace(/'/g, "").substring(0, 40);
       var safePrice = (price  "") + " " + (price_unit  "");
-      var safeDetails = (bedrooms  "") + " غرف | " + (area_sqm  "") + " متر";
+      var safeDetails = (bedrooms  "") + " " + (area_sqm  "");
       var safeCta = (cta_text || "ابعتلنا واتساب").replace(/'/g, "").substring(0, 50);
 
       var hookFilter = "[outv]drawtext=text='" + safeHook + "':fontsize=52:fontcolor=white:x=(w-text_w)/2:y=180:shadowcolor=black:shadowx=3:shadowy=3[v_hook]";
@@ -172,16 +170,24 @@ app.post("/generate-reel", function(req, res) {
           "-b:a 128k"
         ])
         .output(outputPath)
+        .on("start", function() {
+          console.log("FFmpeg started for " + property_id);
+        })
+        .on("progress", function(p) {
+          console.log("Progress: " + Math.round(p.percent || 0) + "%");
+        })
         .on("end", resolve)
         .on("error", reject)
         .run();
     });
 
   }).then(function() {
+    console.log("Uploading to Drive...");
     return uploadToDrive(outputPath, fileName);
 
   }).then(function(result) {
     cleanup.apply(null, imagePaths.concat([outputPath]));
+    console.log("Done. URL: " + result.url);
     res.json({
       success: true,
       property_id: property_id,
@@ -192,7 +198,7 @@ app.post("/generate-reel", function(req, res) {
 
   }).catch(function(error) {
     cleanup.apply(null, imagePaths.concat([outputPath]));
-    console.error("Error:", error.message);
+    console.error("Error: " + error.message);
     res.status(500).json({
       success: false,
       property_id: property_id,
